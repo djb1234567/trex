@@ -1,5 +1,5 @@
 var PLAY = 1;
-var END =  O;
+var END =  0;
 var gameState = PLAY;
 
 var gameOver,restart;
@@ -13,6 +13,7 @@ var obstaclesGroup, obstacle1, obstacle2, obstacle3, obstacle4, obstacle5, obsta
 
 var score;
 
+localStorage["HighestScore"] = 0;
 
 function preload(){
   trex_running = loadAnimation("trex1.png","trex3.png","trex4.png");
@@ -71,30 +72,56 @@ function draw() {
   background(180);
   
   
-  text("Score: "+ score, 500,50);
+  text("Score: "+ score, 500,50);    
+  text("Highest Score:"+localStorage["HighestScore"],100,50);
   
-  if (gameState===PLAY){
+  if (gameState===PLAY){             
     
-    score = score + Math.round(getFrameRate()/60);
+          score = score + Math.round(getFrameRate()/60);
+          
+        // console.log(trex.y);
     
-     if(keyDown("space")) {
-    trex.velocityY = -10;
-  }
-  
-  trex.velocityY = trex.velocityY + 0.8
-  
-  if (ground.x < 0){
-    ground.x = ground.width/2;
-  }
-   trex.collide(invisibleGround);
-   spawnClouds() ;
-   spawnObstacles();
-   
-    if (obstaclesGroup.isTouching(trex)){
-      gameState = END;
-    }
+    
+           if(keyDown("space") && trex.y > 161 ) {
+          trex.velocityY = -10;
+        }
 
+        trex.velocityY = trex.velocityY + 0.8
+
+        if (ground.x < 0){
+          ground.x = ground.width/2;
+        }
+         trex.collide(invisibleGround);
+         spawnClouds() ;
+         spawnObstacles();
+
+          if (obstaclesGroup.isTouching(trex)){
+            gameState = END;
+          }
   }
+  else if (gameState === END){
+     gameOver.visible = true;
+    restart.visible = true;
+    
+    //set velcity of each game object to 0
+    ground.velocityX = 0;
+    trex.velocityY = 0;
+    obstaclesGroup.setVelocityXEach(0);
+    cloudsGroup.setVelocityXEach(0);
+
+    
+    //change the trex animation
+   trex.changeAnimation("collided",trex_collided); 
+    
+    //set lifetime of the game objects so that they are never destroyed
+     obstaclesGroup.setLifetimeEach(-1);
+     cloudsGroup.setLifetimeEach(-1);
+
+      if(mousePressedOver(restart)) { 
+      reset(); 
+     }
+  }
+  
  
   
      drawSprites();
@@ -105,13 +132,18 @@ function draw() {
   gameOver.visible = false;
   restart.visible = false;
   
-  ObstaclesGroup.destroyEach();
-  CloudsGroup.destroyEach();
+  obstaclesGroup.destroyEach();
+  cloudsGroup.destroyEach();
   
   trex.changeAnimation("running",trex_running);
   
-  score = 0;
-  
+ if(localStorage["HighestScore"]<score){
+                        
+       localStorage["HighestScore"] = score;
+   } 
+    console.log(localStorage["HighestScore"]);
+
+    score = 0;
 }
 
 function spawnClouds() {
